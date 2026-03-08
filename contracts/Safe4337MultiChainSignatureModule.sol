@@ -414,7 +414,7 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
                 proofEnd = 13;
                 proof = sig[0:1]; // point anywhere to make the compiler happy
             }else{
-                uint256 expectedProofLength = (merkleTreeDepth + 1) * 0x20;
+                uint256 expectedProofLength = (uint256(merkleTreeDepth) + 1) * 0x20;
                 proofEnd = 13 + expectedProofLength;
 
                 // Validate proof length before accessing to prevent out-of-bounds access
