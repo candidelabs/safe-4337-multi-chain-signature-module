@@ -49,4 +49,20 @@ contract Safe4337ModuleHarness is Safe4337MultiChainSignatureModule {
     ) external view returns (uint256 validationData) {
         return _validateSignatures(userOp);
     }
+
+    function exposed_paymasterDataKeccak(bytes calldata data) external pure returns (bytes32) {
+        return paymasterDataKeccak(data);
+    }
+
+    function exposed_getPaymasterSignatureLength(bytes calldata paymasterAndData) external pure returns (uint256) {
+        return getPaymasterSignatureLength(paymasterAndData);
+    }
+
+    function exposed_calldataKeccak(bytes calldata data) external pure returns (bytes32) {
+        return calldataKeccak(data);
+    }
+
+    function exposed_calldataKeccakWithSuffix(bytes calldata data, uint256 len, bytes8 suffix) external pure returns (bytes32) {
+        return calldataKeccakWithSuffix(data, len, suffix);
+    }
 }

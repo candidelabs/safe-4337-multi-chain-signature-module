@@ -1,0 +1,13 @@
+[profile.default]
+src = "contracts"
+test = "contracts/test"
+libs = ["node_modules"]
+remappings = [
+    "forge-std/=node_modules/forge-std/src/",
+    "@account-abstraction/=node_modules/@account-abstraction/",
+    "@safe-global/=node_modules/@safe-global/",
+    "@openzeppelin/=node_modules/@openzeppelin/"
+]
+solc_version = "0.8.28"
+optimizer = true
+optimizer_runs = 1_000_000
