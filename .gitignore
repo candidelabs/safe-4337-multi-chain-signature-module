@@ -20,3 +20,13 @@
 /coverage
 
 soljson-latest.js
+
+# Foundry
+/out
+/broadcast
+lcov.info
+
+# OS
+.DS_Store
+
+.claude/skills

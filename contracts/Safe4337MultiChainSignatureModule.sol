@@ -385,10 +385,23 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
         validationData = _packValidationData(!validSignature, validUntil, validAfter);
     }
 
+    /**
+     * @notice Sorts two bytes32 values and hashes them, ensuring a canonical ordering for merkle tree nodes.
+     * @param a First hash.
+     * @param b Second hash.
+     * @return The hash of the sorted pair.
+     */
     function _hashPair(bytes32 a, bytes32 b) private pure returns(bytes32) {
         return a < b ? _efficientHash(a, b) : _efficientHash(b, a);
     }
 
+    /**
+     * @notice Computes keccak256 of two bytes32 values using scratch space for gas efficiency.
+     * @dev Writes to memory at 0x00 without bumping the free memory pointer, since the result is consumed immediately.
+     * @param a First 32-byte value.
+     * @param b Second 32-byte value.
+     * @return value The keccak256 hash of `abi.encodePacked(a, b)`.
+     */
     function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 value) {
         // solhint-disable-next-line no-inline-assembly
         assembly ("memory-safe") {
@@ -495,8 +508,9 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
     }
 
     /**
-    * keccak function over calldata.
-    * @dev copy calldata into memory, do keccak and drop allocated memory. Strangely, this is more efficient than letting solidity do it.
+    * @notice Computes the keccak256 hash of a calldata byte array.
+    * @dev Copies calldata into memory at the free memory pointer without bumping it, then hashes.
+    * This is more gas-efficient than Solidity's built-in keccak256 on calldata.
     *
     * @param data - the calldata bytes array to perform keccak on.
     * @return ret - the keccak hash of the 'data' array.
@@ -533,9 +547,11 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
     }
 
     /**
-     * return the length of the paymaster signature appended in paymasterAndData.
-     * return 0 if no signature.
-     * note that this signature is not part of the userOpHash, and thus not signed by the user.
+     * @notice Returns the length of the paymaster signature appended to `paymasterAndData`.
+     * @dev Returns 0 if no paymaster signature is detected (i.e. the magic suffix is absent or the data is too short).
+     * The paymaster signature is not part of the userOpHash and is therefore not signed by the user.
+     * @param paymasterAndData The packed paymaster address and associated data from the user operation.
+     * @return paymasterSignatureLength Length of the paymaster signature in bytes, or 0 if none.
      */
     function getPaymasterSignatureLength(
         bytes calldata paymasterAndData
