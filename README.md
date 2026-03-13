@@ -7,7 +7,7 @@ The `Safe4337MultiChainSignatureModule` extends the [Safe4337Module](https://git
 ## Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation)
-- [Node.js](https://nodejs.org/) >= 18
+- [Node.js](https://nodejs.org/) >= 20
 - [Yarn](https://yarnpkg.com/)
 
 ## Installation
