@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@account-abstraction": "git+https://github.com/eth-infinitism/account-abstraction.git#v0.9.0",
+    "@openzeppelin/contracts": "^5.1.0",
     "@safe-global/safe-contracts": "^1.4.1-build.0"
   },
   "devDependencies": {
