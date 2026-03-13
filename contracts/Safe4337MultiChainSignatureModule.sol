@@ -19,6 +19,10 @@ import {ISafe} from "./Safe.sol";
  *      - The user operation hash is signed by the Safe owner(s) and validated by the module.
  *      - The user operation is not allowed to execute any other function than `executeUserOp` and `executeUserOpWithErrorString`.
  *      - Replay protection is handled by the entry point.
+ *      - Multi-chain signatures: When using merkle tree signatures (merkleTreeDepth > 0), the user signs a single
+ *        merkle root covering SafeOps across multiple chains. The signing client MUST verify ALL leaves in the
+ *        merkle tree before the root is signed. Failure to do so allows a malicious tree constructor to include
+ *        unauthorized operations on other chains.
  */
 contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, CompatibilityFallbackHandler {
     using UserOperationLib for PackedUserOperation;
@@ -386,7 +390,8 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
     }
 
     function _efficientHash(bytes32 a, bytes32 b) private pure returns (bytes32 value) {
-        assembly {
+        // solhint-disable-next-line no-inline-assembly
+        assembly ("memory-safe") {
             mstore(0x00, a)
             mstore(0x20, b)
             value := keccak256(0x00, 0x40)
