@@ -5,7 +5,7 @@ import {HandlerContext} from "@safe-global/safe-contracts/contracts/handler/Hand
 import {CompatibilityFallbackHandler} from "@safe-global/safe-contracts/contracts/handler/CompatibilityFallbackHandler.sol";
 import {IAccount} from "@account-abstraction/contracts/interfaces/IAccount.sol";
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
-import {_packValidationData} from "@account-abstraction/contracts/core/Helpers.sol";
+import {_packValidationData, calldataKeccak, calldataKeccakWithSuffix, paymasterDataKeccak} from "@account-abstraction/contracts/core/Helpers.sol";
 import {UserOperationLib} from "@account-abstraction/contracts/core/UserOperationLib.sol";
 import {ISafe} from "./Safe.sol";
 
@@ -123,8 +123,6 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
      */
     error ExecutionFailed();
 
-    error InvalidPaymasterSignatureLength(uint256 dataLength, uint256 pmSignatureLength);
-
     /**
      * @notice An error indicating that the merkle tree depth exceeds the maximum allowed depth.
      */
@@ -147,13 +145,6 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
      * excessive gas consumption during verification.
      */
     uint256 public constant MAX_MERKLE_DEPTH = 10;
-
-    uint256 public constant PAYMASTER_DATA_OFFSET = 52;
-    uint256 constant internal PAYMASTER_SIG_MAGIC_LEN = 8;
-    uint256 constant internal PAYMASTER_SUFFIX_LEN = PAYMASTER_SIG_MAGIC_LEN + 2; // suffix length (signature length + magic)
-    bytes8 constant internal  PAYMASTER_SIG_MAGIC = 0x22e325a297439656; // keccak("PaymasterSignature")[:8]
-    uint256 constant internal MIN_PAYMASTER_DATA_WITH_SUFFIX_LEN = PAYMASTER_DATA_OFFSET + PAYMASTER_SUFFIX_LEN; // minimum length of paymasterData that can contain a paymaster signature.
-
 
     constructor(address entryPoint) {
         if (entryPoint == address(0)) {
@@ -484,95 +475,5 @@ contract Safe4337MultiChainSignatureModule is IAccount, HandlerContext, Compatib
         }
     }
 
-    /**
-    * @notice Computes the Keccak-256 hash of a slice of calldata, followed by an 8-byte suffix.
-    * This function copies the first `len` bytes from the given calldata array `data` into memory.
-    * The assembly code is equivalent to:
-    *      keccak256(abi.encodePacked(data[0:len], suffix))
-    * But more efficient, and doesn't move the free memory pointer, allowing the memory to be reused later.
-    *
-    * @param data   Calldata byte array to read from.
-    * @param len    Number of bytes to copy from `data` starting at its offset.
-    * @param suffix 8-byte value appended to the data bytes before hashing.
-    *
-    * @return ret The hash of (data[0:len] || suffix).
-    */
-    function calldataKeccakWithSuffix(bytes calldata data, uint256 len, bytes8 suffix) internal pure returns (bytes32 ret) {
-        assembly ("memory-safe") {
-            let mem := mload(0x40)
-            calldatacopy(mem, data.offset, len)
-            mstore(add(mem, len), suffix)
-            len := add(len, 8)
-            ret := keccak256(mem, len)
-        }
-    }
-
-    /**
-    * @notice Computes the keccak256 hash of a calldata byte array.
-    * @dev Copies calldata into memory at the free memory pointer without bumping it, then hashes.
-    * This is more gas-efficient than Solidity's built-in keccak256 on calldata.
-    *
-    * @param data - the calldata bytes array to perform keccak on.
-    * @return ret - the keccak hash of the 'data' array.
-    */
-    function calldataKeccak(bytes calldata data) internal pure returns (bytes32 ret) {
-        assembly ("memory-safe") {
-            let mem := mload(0x40)
-            let len := data.length
-            calldatacopy(mem, data.offset, len)
-            ret := keccak256(mem, len)
-        }
-    }
-
-    /**
-    * Keccak function over paymaster data.
-    * If data ends with `PAYMASTER_SIG_MAGIC`, then
-    * read the previous 2 bytes as pmSignatureLength,
-    * and ignore this suffix from the hash.
-    * This means that the trailing pmSignatureLength+10 bytes are not covered by the UserOpHash, and thus are not signed.
-    * @dev copy calldata into memory, do keccak and drop allocated memory. Strangely, this is more efficient than letting solidity do it.
-    *
-    * @param data - the calldata bytes array to perform keccak on.
-    * @return ret - the keccak hash of the 'data' array.
-    */
-    function paymasterDataKeccak(bytes calldata data) internal pure returns (bytes32 ret) {
-        uint256 pmSignatureLength = getPaymasterSignatureLength(data);
-        if (pmSignatureLength > 0) {
-            unchecked {
-                //keccak everything up to the paymasterSignature, but still append the sig magic.
-                return calldataKeccakWithSuffix(data, data.length - (pmSignatureLength + PAYMASTER_SUFFIX_LEN), PAYMASTER_SIG_MAGIC);
-            }
-        }
-        return calldataKeccak(data);
-    }
-
-    /**
-     * @notice Returns the length of the paymaster signature appended to `paymasterAndData`.
-     * @dev Returns 0 if no paymaster signature is detected (i.e. the magic suffix is absent or the data is too short).
-     * The paymaster signature is not part of the userOpHash and is therefore not signed by the user.
-     * @param paymasterAndData The packed paymaster address and associated data from the user operation.
-     * @return paymasterSignatureLength Length of the paymaster signature in bytes, or 0 if none.
-     */
-    function getPaymasterSignatureLength(
-        bytes calldata paymasterAndData
-    ) internal pure returns (uint256 paymasterSignatureLength) {
-        unchecked {
-            uint256 dataLength = paymasterAndData.length;
-            if (dataLength < MIN_PAYMASTER_DATA_WITH_SUFFIX_LEN) {
-                return 0;
-            }
-            bytes8 suffix8 = bytes8(paymasterAndData[dataLength - PAYMASTER_SIG_MAGIC_LEN : dataLength]);
-            if (suffix8 != PAYMASTER_SIG_MAGIC) {
-                return 0;
-            }
-            uint256 pmSignatureLength = uint16(bytes2(paymasterAndData[dataLength - PAYMASTER_SUFFIX_LEN :]));
-
-            if (pmSignatureLength > dataLength - MIN_PAYMASTER_DATA_WITH_SUFFIX_LEN) {
-                // paymasterSignature cannot extend before the paymasterData
-                revert InvalidPaymasterSignatureLength(dataLength, pmSignatureLength);
-            }
-            return pmSignatureLength;
-        }
-    }
 }
 

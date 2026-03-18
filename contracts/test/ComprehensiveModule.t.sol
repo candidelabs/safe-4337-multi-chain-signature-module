@@ -7,6 +7,7 @@ import {MockSafe} from "./MockSafe.sol";
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
 import {Safe4337MultiChainSignatureModule} from "../Safe4337MultiChainSignatureModule.sol";
 import {IAccount} from "@account-abstraction/contracts/interfaces/IAccount.sol";
+import {UserOperationLib} from "@account-abstraction/contracts/core/UserOperationLib.sol";
 
 // =========================================================================
 // Helper Contracts
@@ -604,7 +605,7 @@ contract ComprehensiveModuleTest is Test {
         bytes memory data = abi.encodePacked(header, pmSigLength, magic);
 
         vm.expectRevert(abi.encodeWithSelector(
-            Safe4337MultiChainSignatureModule.InvalidPaymasterSignatureLength.selector,
+            UserOperationLib.InvalidPaymasterSignatureLength.selector,
             data.length,
             uint256(1)
         ));

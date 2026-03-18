@@ -3,6 +3,8 @@ pragma solidity 0.8.28;
 
 import {Safe4337MultiChainSignatureModule} from "../Safe4337MultiChainSignatureModule.sol";
 import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/PackedUserOperation.sol";
+import {calldataKeccak, calldataKeccakWithSuffix, paymasterDataKeccak} from "@account-abstraction/contracts/core/Helpers.sol";
+import {UserOperationLib} from "@account-abstraction/contracts/core/UserOperationLib.sol";
 
 /**
  * @title Test harness that exposes internal functions for unit testing.
@@ -10,6 +12,8 @@ import {PackedUserOperation} from "@account-abstraction/contracts/interfaces/Pac
  *      since they cannot be inherited.
  */
 contract Safe4337ModuleHarness is Safe4337MultiChainSignatureModule {
+    using UserOperationLib for bytes;
+
     constructor(address entryPoint) Safe4337MultiChainSignatureModule(entryPoint) {}
 
     function exposed_hashPair(bytes32 a, bytes32 b) external pure returns (bytes32) {
@@ -55,7 +59,7 @@ contract Safe4337ModuleHarness is Safe4337MultiChainSignatureModule {
     }
 
     function exposed_getPaymasterSignatureLength(bytes calldata paymasterAndData) external pure returns (uint256) {
-        return getPaymasterSignatureLength(paymasterAndData);
+        return paymasterAndData.getPaymasterSignatureLength();
     }
 
     function exposed_calldataKeccak(bytes calldata data) external pure returns (bytes32) {
