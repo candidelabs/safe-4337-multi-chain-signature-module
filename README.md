@@ -30,6 +30,31 @@ forge build
 forge test -vvv
 ```
 
+## Deploy
+
+The deployment script uses `CREATE2` via the deterministic deployment proxy, so the module gets the same address on every chain.
+
+```bash
+# Dry run (simulation)
+forge script script/Deploy.s.sol --rpc-url <RPC_URL> -vvv
+
+# Broadcast to network
+forge script script/Deploy.s.sol \
+  --rpc-url <RPC_URL> \
+  --private-key <PK> \
+  --broadcast \
+  --verify \
+  --etherscan-api-key <KEY>
+
+# Custom salt (optional, defaults to 0x0)
+SALT=0x01 forge script script/Deploy.s.sol \
+  --rpc-url <RPC_URL> \
+  --private-key <PK> \
+  --broadcast
+```
+
+The script skips deployment if the contract already exists at the predicted address.
+
 ## Coverage
 
 ```bash

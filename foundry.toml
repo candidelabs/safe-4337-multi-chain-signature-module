@@ -1,6 +1,7 @@
 [profile.default]
 src = "contracts"
 test = "contracts/test"
+script = "script"
 libs = ["node_modules"]
 remappings = [
     "forge-std/=node_modules/forge-std/src/",
