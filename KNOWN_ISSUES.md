@@ -45,3 +45,11 @@ This document lists known issues and accepted risks in the `Safe4337MultiChainSi
 **Description**: The module does not check whether `validAfter > validUntil` (which would make the operation never valid). This validation is delegated to the EntryPoint.
 
 **Rationale**: The EntryPoint already validates these timestamps when processing the packed validation data. Adding a redundant check in the module would increase gas costs without security benefit.
+
+## K-06: Merkle Tree Second Preimage (Theoretical)
+
+**Severity**: Informational (accepted)
+
+**Description**: In standard merkle tree constructions, if leaf hashes and intermediate node hashes use the same input size, an intermediate node can be submitted as a valid leaf (second preimage attack). In this module, leaf hashes are computed from 66-byte EIP-712 typed data (`0x1901 || domainSeparator || structHash`), while intermediate node hashes are computed from 64-byte pairs (`sorted(child1, child2)`). The different input sizes prevent second preimage confusion without requiring the standard double-hashing mitigation.
+
+**Rationale**: Exploiting this would require finding a keccak256 collision between a 66-byte and 64-byte input, which is computationally infeasible. The proof depth is also enforced via `merkleTreeDepth`, preventing proof truncation/extension attacks.
