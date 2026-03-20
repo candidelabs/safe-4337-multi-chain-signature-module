@@ -1,12 +1,14 @@
 # Audit Scope
 
+- **Version**: 1.0.0
+
 ## Contracts in Scope
 
-| Contract | Path | Lines |
-|---|---|---|
-| `Safe4337MultiChainSignatureModule` | `contracts/Safe4337MultiChainSignatureModule.sol` | 562 |
-| `ISafe` (interface) | `contracts/Safe.sol` | 66 |
-| **Total** | | **628** |
+| Contract | Path | nSLOC | Lines |
+|---|---|---|---|
+| `Safe4337MultiChainSignatureModule` | `contracts/Safe4337MultiChainSignatureModule.sol` | 205 | 479 |
+
+nSLOC measured with [cloc](https://github.com/AlDanial/cloc) v2.06 (excludes comments and blank lines).
 
 ## Compiler Settings
 
@@ -23,7 +25,6 @@ Configured in [`foundry.toml`](./foundry.toml).
 |---|---|---|
 | `@account-abstraction` | `v0.9.0` | [eth-infinitism/account-abstraction](https://github.com/eth-infinitism/account-abstraction) (git, pinned) |
 | `@safe-global/safe-contracts` | `^1.4.1-build.0` | npm |
-| `forge-std` | `v1.9.4` | [foundry-rs/forge-std](https://github.com/foundry-rs/forge-std) (git, pinned) |
 
 ## Out of Scope
 
@@ -38,7 +39,7 @@ Configured in [`foundry.toml`](./foundry.toml).
 ```bash
 # Prerequisites
 # - Foundry (https://book.getfoundry.sh/getting-started/installation)
-# - Node.js >= 18
+# - Node.js >= 20
 # - Yarn
 
 # Install dependencies
