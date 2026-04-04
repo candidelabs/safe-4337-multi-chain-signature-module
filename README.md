@@ -2,7 +2,7 @@
 
 The `Safe4337MultiChainSignatureModule` extends the [Safe4337Module](https://github.com/safe-fndn/safe-modules/tree/main/modules/4337) to support multi-chain signatures. It targets EntryPoint v0.9 with the new paymaster signature scheme, where the paymaster signature is stripped from `paymasterAndData` before hashing so that users can sign operations without knowing the paymaster signature in advance. By using a merkle tree, multiple user operations across different chains can be signed once and validated independently on each chain.
 
-> **Status**: This contract is pending a professional security audit. Do not use in production until the audit is complete.
+> **Status**: This contract has been audited by [Nethermind](https://www.nethermind.io/). See the [audit report](./audit/NM_0874_Candide_safe.pdf).
 
 ## Prerequisites
 
@@ -63,6 +63,7 @@ forge coverage
 
 ## Documentation
 
+- [Audit Report](./audit/NM_0874_Candide_safe.pdf) — Security audit by Nethermind
 - [AUDIT_SCOPE.md](./AUDIT_SCOPE.md) — Contracts in scope, compiler settings, dependencies
 - [ARCHITECTURE.md](./ARCHITECTURE.md) — System design, signature modes, trust model
 - [KNOWN_ISSUES.md](./KNOWN_ISSUES.md) — Acknowledged findings and accepted risks
